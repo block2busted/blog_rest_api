@@ -12,8 +12,8 @@ from .views import (
 app_name = 'articles-api'
 urlpatterns = [
     path('', ArticleListAPIView.as_view(), name='article-list'),
-    path('<int:pk>/', ArticleDetailAPIView.as_view(), name='article-details'),
-    path('<int:pk>/create/', ArticleCreateAPIView.as_view(), name='article-create'),
-    path('<int:pk>/update/', ArticleUpdateAPIView.as_view(), name='article-update'),
-    path('<int:pk>/delete/', ArticleDeleteAPIView.as_view(), name='article-delete'),
+    path('create/', ArticleCreateAPIView.as_view(), name='article-create'),
+    path('<str:slug>/', ArticleDetailAPIView.as_view(), name='article-details'),
+    path('<str:slug>/update/', ArticleUpdateAPIView.as_view(), name='article-update'),
+    path('<str:slug>/delete/', ArticleDeleteAPIView.as_view(), name='article-delete'),
 ]

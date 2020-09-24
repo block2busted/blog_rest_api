@@ -10,7 +10,7 @@ User = get_user_model()
 class Article(models.Model):
     title = models.CharField(max_length=64, help_text='Title')
     content = models.TextField(help_text='Content')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, blank=True, null=True, help_text='Category')
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, help_text='Category')
     author = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, help_text='Author')
     created = models.DateTimeField(auto_now_add=True, help_text='Created datetime')
     updated = models.DateTimeField(auto_now=True, help_text='Updated datetime')

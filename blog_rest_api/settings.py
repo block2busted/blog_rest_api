@@ -26,7 +26,8 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'articles',
-    'categories'
+    'categories',
+    'comments'
 ]
 
 MIDDLEWARE = [
@@ -105,5 +106,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
+    'DATETIME_FORMAT': "%d.%m.%Y %H:%M",
+    'SEARCH_PARAM': 'q',
+    'ORDERING_PARAM': 'ordering'
 }
+
