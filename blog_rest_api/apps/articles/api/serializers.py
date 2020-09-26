@@ -1,9 +1,43 @@
 from rest_framework import serializers
 
 from articles.models import Article
+from comments.api.serializers import CommentDetailSerializer, CommentInlineSerializer
+from comments.models import Comment
 
 
 class ArticleListSerializer(serializers.ModelSerializer):
+    uri = serializers.HyperlinkedIdentityField(
+        view_name='articles-api:article-details',
+        lookup_field='slug'
+    )
+    author = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Article
+        fields = [
+            'pk',
+            'uri',
+            'title',
+            'slug',
+            'author',
+            'category',
+            'created',
+            'updated',
+            'is_active',
+            'views_count',
+            'comments_count'
+        ]
+
+    def get_author(self, obj):
+        return obj.author.username
+
+    def get_comments_count(self, obj):
+        comment_qs = Comment.objects.filter(article=obj)
+        return comment_qs.count()
+
+
+class ArticleDetailSerializer(serializers.ModelSerializer):
     uri = serializers.HyperlinkedIdentityField(
         view_name='articles-api:article-details',
         lookup_field='slug'
@@ -29,34 +63,11 @@ class ArticleListSerializer(serializers.ModelSerializer):
     def get_author(self, obj):
         return obj.author.username
 
-    def get_comments(self, object):
-        #comments = Comment.objects.all()
-        return ''
-
-
-class ArticleDetailSerializer(serializers.ModelSerializer):
-    uri = serializers.HyperlinkedIdentityField(
-        view_name='articles-api:article-details',
-        lookup_field='slug'
-    )
-    author = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Article
-        fields = [
-            'pk',
-            'uri',
-            'title',
-            'author',
-            'category',
-            'created',
-            'updated',
-            'is_active',
-            'views_count'
-        ]
-
-    def get_author(self, obj):
-        return obj.author.username
+    def get_comments(self, obj):
+        request = self.context.get('request')
+        comments_qs = Comment.objects.filter_by_instance(obj)
+        comments = CommentInlineSerializer(comments_qs, many=True, context={'request': request}).data
+        return comments
 
 
 class ArticleCreateSerializer(serializers.ModelSerializer):
@@ -70,10 +81,7 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        request = self.context.get('request')
-        user = request.user
         article = Article.objects.create(
-            #author=user,
             **validated_data
         )
         article.save()
