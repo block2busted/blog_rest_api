@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
+from rest_framework.reverse import reverse as api_reverse
 
 from comments.models import Comment
 
@@ -65,12 +66,14 @@ class CommentInlineSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     reply_count = serializers.SerializerMethodField()
     author = serializers.SerializerMethodField()
+    author_uri = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = [
             'pk',
             'author',
+            'author_uri',
             'created',
             'content',
             'reply_count',
@@ -78,8 +81,9 @@ class CommentInlineSerializer(serializers.ModelSerializer):
         ]
 
     def get_replies(self, obj):
+        request = self.context.get('request')
         if obj.is_parent:
-            return CommentChildSerializer(obj.get_children(), many=True).data
+            return CommentChildSerializer(obj.get_children(), many=True, context={'request': request}).data
         return None
 
     def get_reply_count(self, obj):
@@ -90,15 +94,21 @@ class CommentInlineSerializer(serializers.ModelSerializer):
     def get_author(self, obj):
         return obj.author.username
 
+    def get_author_uri(self, obj):
+        request = self.context.get('request')
+        return api_reverse('accounts-api:profile', kwargs={'username': obj.author.username}, request=request)
+
 
 class CommentChildSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
+    author_uri = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = [
             'pk',
             'author',
+            'author_uri',
             'created',
             'content',
         ]
@@ -106,31 +116,41 @@ class CommentChildSerializer(serializers.ModelSerializer):
     def get_author(self, obj):
         return obj.author.username
 
+    def get_author_uri(self, obj):
+        request = self.context.get('request')
+        return api_reverse('accounts-api:profile', kwargs={'username': obj.author.username}, request=request)
+
 
 class CommentDetailSerializer(serializers.ModelSerializer):
-    replies = serializers.SerializerMethodField()
-    reply_count = serializers.SerializerMethodField()
     author = serializers.SerializerMethodField()
+    author_uri = serializers.SerializerMethodField()
     article = serializers.HyperlinkedRelatedField(
         view_name='articles-api:article-details',
         lookup_field='slug',
         read_only=True
     )
+    replies = serializers.SerializerMethodField()
+    reply_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = [
             'pk',
             'author',
+            'author_uri',
             'article',
             'created',
             'content',
             'reply_count',
             'replies'
         ]
-        read_only_fields = [
 
-        ]
+    def get_author(self, obj):
+        return obj.author.username
+
+    def get_author_uri(self, obj):
+        request = self.context.get('request')
+        return api_reverse('accounts-api:profile', kwargs={'username': obj.author.username}, request=request)
 
     def get_replies(self, obj):
         if obj.is_parent:
@@ -142,12 +162,10 @@ class CommentDetailSerializer(serializers.ModelSerializer):
             return obj.get_children().count()
         return 0
 
-    def get_author(self, obj):
-        return obj.author.username
-
 
 class CommentListSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
+    author_uri = serializers.SerializerMethodField()
     article = serializers.HyperlinkedRelatedField(
         view_name='articles-api:article-details',
         lookup_field='slug',
@@ -160,6 +178,7 @@ class CommentListSerializer(serializers.ModelSerializer):
         fields = [
             'pk',
             'author',
+            'author_uri',
             'article',
             'created',
             'content',
@@ -168,6 +187,10 @@ class CommentListSerializer(serializers.ModelSerializer):
 
     def get_author(self, obj):
         return obj.author.username
+
+    def get_author_uri(self, obj):
+        request = self.context.get('request')
+        return api_reverse('accounts-api:profile', kwargs={'username': obj.author.username}, request=request)
 
     def get_replies(self, obj):
         if obj.is_parent:

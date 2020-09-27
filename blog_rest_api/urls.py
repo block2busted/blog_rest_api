@@ -9,7 +9,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/articles/', include('articles.api.urls', namespace='articles-api')),
     path('api/categories/', include('categories.api.urls', namespace='categories-api')),
-    path('api/comments/', include('comments.api.urls', namespace='comments-api'))
+    path('api/comments/', include('comments.api.urls', namespace='comments-api')),
+    path('api/accounts/', include('accounts.api.urls', namespace='accounts-api'))
 ]
 
 if settings.DEBUG:

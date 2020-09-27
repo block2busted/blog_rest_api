@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.reverse import reverse as api_reverse
 
 from articles.models import Article
 from comments.api.serializers import CommentDetailSerializer, CommentInlineSerializer
@@ -11,6 +12,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
         lookup_field='slug'
     )
     author = serializers.SerializerMethodField()
+    author_uri = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -21,6 +23,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
             'title',
             'slug',
             'author',
+            'author_uri',
             'category',
             'created',
             'updated',
@@ -31,6 +34,10 @@ class ArticleListSerializer(serializers.ModelSerializer):
 
     def get_author(self, obj):
         return obj.author.username
+
+    def get_author_uri(self, obj):
+        request = self.context.get('request')
+        return api_reverse('accounts-api:profile', kwargs={'username': obj.author.username}, request=request)
 
     def get_comments_count(self, obj):
         comment_qs = Comment.objects.filter(article=obj)
@@ -43,6 +50,7 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
         lookup_field='slug'
     )
     author = serializers.SerializerMethodField()
+    author_uri = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
 
     class Meta:
@@ -52,6 +60,7 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
             'uri',
             'title',
             'author',
+            'author_uri',
             'category',
             'created',
             'updated',
@@ -62,6 +71,10 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
 
     def get_author(self, obj):
         return obj.author.username
+
+    def get_author_uri(self, obj):
+        request = self.context.get('request')
+        return api_reverse('accounts-api:profile', kwargs={'username': obj.author.username}, request=request)
 
     def get_comments(self, obj):
         request = self.context.get('request')
